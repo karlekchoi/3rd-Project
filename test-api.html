@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenAI API 테스트</title>
+    <style>
+        body {
+            font-family: 'Gowun Dodum', sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #fdfbf7;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #D72638;
+            text-align: center;
+        }
+        button {
+            background: #D72638;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            margin-top: 20px;
+        }
+        button:hover {
+            background: #b8202f;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .loading {
+            text-align: center;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔑 OpenAI API 키 테스트</h1>
+        <p>이 페이지에서 OpenAI API 키가 제대로 설정되었는지 테스트할 수 있습니다.</p>
+        
+        <button onclick="testAPI()">API 키 테스트 시작</button>
+        
+        <div id="result"></div>
+    </div>
+
+    <script type="module">
+        window.testAPI = async function() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = 'loading';
+            resultDiv.textContent = '⏳ API 키를 테스트하는 중...';
+
+            try {
+                // 환경 변수 확인
+                const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+                
+                if (!apiKey) {
+                    resultDiv.className = 'error';
+                    resultDiv.textContent = '❌ 오류: VITE_OPENAI_API_KEY 환경 변수가 설정되지 않았습니다.\n\n.env 파일에 다음과 같이 설정하세요:\nVITE_OPENAI_API_KEY=sk-proj-xxxxx';
+                    return;
+                }
+
+                if (!apiKey.startsWith('sk-')) {
+                    resultDiv.className = 'error';
+                    resultDiv.textContent = '⚠️ 경고: API 키 형식이 올바르지 않습니다.\nOpenAI API 키는 "sk-"로 시작해야 합니다.\n\n현재 설정된 키: ' + apiKey.substring(0, 10) + '...';
+                    return;
+                }
+
+                resultDiv.className = 'info';
+                resultDiv.textContent = '✓ API 키가 발견되었습니다: ' + apiKey.substring(0, 15) + '...\n\n실제 API 호출을 테스트하는 중...';
+
+                // 실제 API 호출 테스트
+                const { getSlangDefinition } = await import('./services/openaiService.ts');
+                
+                const result = await getSlangDefinition('안녕');
+                
+                resultDiv.className = 'success';
+                resultDiv.textContent = `✅ 성공! API 키가 정상적으로 작동합니다!\n\n테스트 결과:\n단어: ${result.word}\n의미: ${result.slangMeaning}`;
+
+            } catch (error) {
+                resultDiv.className = 'error';
+                resultDiv.textContent = `❌ 오류 발생:\n\n${error.message}\n\n상세 정보:\n${error.stack || '스택 정보 없음'}`;
+                console.error('API 테스트 오류:', error);
+            }
+        }
+    </script>
+</body>
+</html>
+
+
+
+
+

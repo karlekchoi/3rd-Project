@@ -1,0 +1,7 @@
+{
+  "name": "한글정원",
+  "description": "An application to learn modern Korean slang and new words through a dictionary, book recommendations, minigames, and a personal vocabulary notebook with flashcards.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
