@@ -30,15 +30,15 @@ interface NaverBookResponse {
 
 /**
  * 네이버 검색 API를 통해 책을 검색합니다.
+ * 백엔드를 통해서만 호출합니다 (CORS 문제 방지).
  * @param query 검색어
  * @param display 반환할 결과 수 (최대 100)
  * @returns Book 배열
  */
 export const searchBooksFromNaver = async (query: string, display: number = 10): Promise<Book[]> => {
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001';
+  
   try {
-    // 네이버 검색 API는 CORS 문제가 있을 수 있으므로 백엔드를 통해 호출 (우선 시도)
-    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001';
-    
     const response = await fetch(`${BACKEND_URL}/naver/search/books`, {
       method: 'POST',
       headers: {
@@ -51,53 +51,26 @@ export const searchBooksFromNaver = async (query: string, display: number = 10):
     });
 
     if (!response.ok) {
-      throw new Error(`백엔드 응답 오류: ${response.status}`);
+      const errorText = await response.text();
+      throw new Error(`백엔드 응답 오류 (${response.status}): ${errorText}`);
     }
 
     const data = await response.json();
-    return convertNaverBooksToBooks(data.items || []);
-  } catch (error: any) {
-    console.warn('백엔드를 통한 네이버 검색 실패, 직접 호출 시도:', error);
     
-    // 백엔드 호출 실패 시에만 직접 호출 시도 (프론트엔드 API 키 필요)
-    if (!NAVER_CLIENT_ID || !NAVER_CLIENT_SECRET) {
-      throw new Error('네이버 API 키가 설정되지 않았습니다. 백엔드가 실행 중인지 확인하거나, VITE_NAVER_CLIENT_ID와 VITE_NAVER_CLIENT_SECRET을 .env 파일에 추가한 후 개발 서버를 재시작하세요.');
+    if (!data.items || data.items.length === 0) {
+      return [];
     }
     
-    return await searchBooksDirectly(query, display);
-  }
-};
-
-/**
- * 네이버 검색 API를 직접 호출합니다 (CORS 문제 가능)
- */
-const searchBooksDirectly = async (query: string, display: number): Promise<Book[]> => {
-  if (!NAVER_CLIENT_ID || !NAVER_CLIENT_SECRET) {
-    throw new Error('네이버 API 키가 설정되지 않았습니다.');
-  }
-
-  const encodedQuery = encodeURIComponent(query);
-  const url = `https://openapi.naver.com/v1/search/book.json?query=${encodedQuery}&display=${Math.min(display, 100)}&sort=sim`;
-
-  try {
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'X-Naver-Client-Id': NAVER_CLIENT_ID,
-        'X-Naver-Client-Secret': NAVER_CLIENT_SECRET,
-      },
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`네이버 API 오류: ${response.status} - ${errorText}`);
-    }
-
-    const data: NaverBookResponse = await response.json();
-    return convertNaverBooksToBooks(data.items || []);
+    return convertNaverBooksToBooks(data.items);
   } catch (error: any) {
-    console.error('네이버 검색 API 오류:', error);
-    throw new Error(`책 검색 실패: ${error.message}`);
+    console.error('백엔드를 통한 네이버 검색 실패:', error);
+    
+    // 네트워크 오류인 경우 백엔드 연결 문제 안내
+    if (error.message?.includes('Failed to fetch') || error.message?.includes('ERR_FAILED')) {
+      throw new Error('백엔드 서버에 연결할 수 없습니다. 백엔드가 실행 중인지 확인하세요. (http://localhost:5001)');
+    }
+    
+    throw new Error(`책 검색 실패: ${error.message || '알 수 없는 오류'}`);
   }
 };
 

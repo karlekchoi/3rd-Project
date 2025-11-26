@@ -107,6 +107,54 @@ export const recommendBooksByLevel = async (level: string): Promise<Book[]> => {
 
   try {
     const levelDescription = levelMap[level] || level;
+    
+    // 먼저 네이버 검색 API로 직접 검색해서 실제 판매 중인 책 가져오기
+    const { searchBooksFromNaver, getSearchQueryByLevel } = await import('./naverService');
+    
+    // 네이버에서 직접 검색 (실제 판매 중인 책만)
+    const searchQuery = getSearchQueryByLevel(level);
+    let naverBooks: Book[] = [];
+    
+    try {
+      naverBooks = await searchBooksFromNaver(searchQuery, 10);
+    } catch (naverError: any) {
+      console.warn('네이버 검색 실패, AI 추천으로 폴백:', naverError);
+      // 네이버 검색 실패해도 계속 진행 (AI 추천으로 폴백)
+    }
+    
+    // 네이버에서 찾은 책이 있으면 반환
+    if (naverBooks && naverBooks.length > 0) {
+      // AI로 추천 설명 생성 (선택사항)
+      try {
+        const response = await openai.chat.completions.create({
+          model: "gpt-4o-mini",
+          messages: [
+            { role: "system", content: "한국어 학습 도서 추천 전문가입니다." },
+            { role: "user", content: `${levelDescription} 한국어 학습자를 위한 다음 책들에 대한 간단한 추천 설명을 각각 1-2줄로 작성해주세요. JSON 형식:\n{"descriptions": [{"title": "책 제목", "author": "저자", "description": "추천 설명"}]}` }
+          ],
+          response_format: { type: "json_object" },
+          temperature: 0.7
+        });
+        
+        const parsed = JSON.parse(response.choices[0].message.content || "{}");
+        const descriptions = parsed.descriptions || [];
+        const descriptionMap = new Map(
+          descriptions.map((d: any) => [`${d.title}-${d.author}`, d.description])
+        );
+        
+        // 네이버 책에 AI 설명 추가
+        return naverBooks.slice(0, 5).map(book => ({
+          ...book,
+          description: descriptionMap.get(`${book.title}-${book.author}`) || book.description
+        }));
+      } catch (aiError) {
+        // AI 설명 생성 실패해도 네이버 책은 반환
+        console.warn("AI 설명 생성 실패, 네이버 책 정보만 반환:", aiError);
+        return naverBooks.slice(0, 5);
+      }
+    }
+    
+    // 네이버 검색 실패 시 AI 추천 후 네이버에서 검색 (폴백)
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
@@ -121,6 +169,7 @@ export const recommendBooksByLevel = async (level: string): Promise<Book[]> => {
     const books = parsed.books || [];
     
     // 네이버 검색을 통해 실제 책 정보 가져오기
+    // 네이버에서 찾은 책만 반환 (실제 판매 중인 책만)
     const { searchBookByTitleAndAuthor } = await import('./naverService');
     
     const booksWithNaverInfo = await Promise.all(
@@ -136,18 +185,13 @@ export const recommendBooksByLevel = async (level: string): Promise<Book[]> => {
           };
         }
         
-        // 네이버에서 찾지 못한 경우 AI 추천 정보만 사용
-        return {
-          title: book.title,
-          author: book.author,
-          description: book.description,
-          coverImageUrl: await getBookCoverByISBN(book.isbn) || undefined,
-          isbn: book.isbn,
-        };
+        // 네이버에서 찾지 못한 경우 null 반환 (필터링됨)
+        return null;
       })
     );
     
-    return booksWithNaverInfo;
+    // 네이버에서 찾은 책만 필터링하여 반환 (실제 판매 중인 책만)
+    return booksWithNaverInfo.filter((book): book is Book => book !== null);
   } catch (error: any) {
     console.error("도서 추천 오류:", error);
     throw new Error(`도서 추천 실패: ${error.message}`);
@@ -171,6 +215,93 @@ export const recommendBooksByMood = async (
   level?: string
 ): Promise<Book[]> => {
   try {
+    // 먼저 네이버 검색 API로 직접 검색해서 실제 판매 중인 책 가져오기
+    const { searchBooksFromNaver } = await import('./naverService');
+    
+    // 기분/상황에 맞는 검색어 생성
+    let searchQuery = `한국어 학습책`;
+    if (mood) {
+      searchQuery = `${mood} ${searchQuery}`;
+    }
+    if (level) {
+      const levelMap: { [key: string]: string } = {
+        '초급': "초급",
+        '중급': "중급",
+        '고급': "고급"
+      };
+      searchQuery = `${levelMap[level] || level} ${searchQuery}`;
+    }
+    
+    // 네이버에서 직접 검색 (실제 판매 중인 책만)
+    let naverBooks: Book[] = [];
+    
+    try {
+      naverBooks = await searchBooksFromNaver(searchQuery, 10);
+    } catch (naverError: any) {
+      console.warn('네이버 검색 실패, AI 추천으로 폴백:', naverError);
+      // 네이버 검색 실패해도 계속 진행 (AI 추천으로 폴백)
+    }
+    
+    // 네이버에서 찾은 책이 있으면 AI 설명 추가 후 반환
+    if (naverBooks && naverBooks.length > 0) {
+      try {
+        let prompt = `현재 기분이 "${mood}"인 한국어 학습자를 위한 다음 책들에 대한 추천 설명을 각각 1-2줄로 작성해주세요.`;
+        
+        if (situation) {
+          prompt += `\n\n현재 상황: ${situation}`;
+        }
+        
+        if (purpose) {
+          prompt += `\n\n이 책을 통해 얻고 싶은 것: ${purpose}`;
+        }
+        
+        if (level) {
+          const levelMap: { [key: string]: string } = {
+            '초급': "초급 (TOPIK 1-2급)",
+            '중급': "중급 (TOPIK 3-4급)",
+            '고급': "고급 (TOPIK 5-6급)"
+          };
+          prompt += `\n\n학습 수준: ${levelMap[level] || level}`;
+        }
+        
+        prompt += `\n\nJSON 형식:\n{"descriptions": [{"title": "책 제목", "author": "저자", "description": "이 책을 추천하는 이유와 현재 기분/상황에 어떻게 도움이 되는지 설명"}]}`;
+        
+        const response = await openai.chat.completions.create({
+          model: "gpt-4o-mini",
+          messages: [
+            { 
+              role: "system", 
+              content: "한국어 학습 도서 추천 전문가입니다. 사용자의 기분과 상황을 깊이 이해하고, 그에 맞는 추천 설명을 작성해주세요." 
+            },
+            { role: "user", content: prompt }
+          ],
+          response_format: { type: "json_object" },
+          temperature: 0.8
+        });
+        
+        const parsed = JSON.parse(response.choices[0].message.content || "{}");
+        const descriptions = parsed.descriptions || [];
+        const descriptionMap = new Map(
+          descriptions.map((d: any) => [`${d.title}-${d.author}`, d.description])
+        );
+        
+        // 네이버 책에 AI 설명 추가
+        return naverBooks.slice(0, 5).map(book => ({
+          ...book,
+          description: descriptionMap.get(`${book.title}-${book.author}`) || book.description,
+          id: `${book.title}-${book.author}-${Date.now()}`,
+        }));
+      } catch (aiError) {
+        // AI 설명 생성 실패해도 네이버 책은 반환
+        console.warn("AI 설명 생성 실패, 네이버 책 정보만 반환:", aiError);
+        return naverBooks.slice(0, 5).map(book => ({
+          ...book,
+          id: `${book.title}-${book.author}-${Date.now()}`,
+        }));
+      }
+    }
+    
+    // 네이버 검색 실패 시 AI 추천 후 네이버에서 검색 (폴백)
     let prompt = `현재 기분이 "${mood}"인 한국어 학습자를 위한 책 5권을 추천해주세요.`;
     
     if (situation) {
@@ -213,6 +344,7 @@ export const recommendBooksByMood = async (
     const books = parsed.books || [];
     
     // 네이버 검색을 통해 실제 책 정보 가져오기
+    // 네이버에서 찾은 책만 반환 (실제 판매 중인 책만)
     const { searchBookByTitleAndAuthor } = await import('./naverService');
     
     const booksWithNaverInfo = await Promise.all(
@@ -227,18 +359,13 @@ export const recommendBooksByMood = async (
           };
         }
         
-        return {
-          title: book.title,
-          author: book.author,
-          description: book.description,
-          coverImageUrl: await getBookCoverByISBN(book.isbn) || undefined,
-          isbn: book.isbn,
-          id: `${book.title}-${book.author}-${Date.now()}`,
-        };
+        // 네이버에서 찾지 못한 경우 null 반환 (필터링됨)
+        return null;
       })
     );
     
-    return booksWithNaverInfo;
+    // 네이버에서 찾은 책만 필터링하여 반환 (실제 판매 중인 책만)
+    return booksWithNaverInfo.filter((book): book is Book => book !== null);
   } catch (error: any) {
     console.error("기분 기반 도서 추천 오류:", error);
     throw new Error(`도서 추천 실패: ${error.message}`);
