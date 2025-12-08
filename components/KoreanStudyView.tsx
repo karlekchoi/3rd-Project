@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { GraduationCapIcon, ArrowLeftIcon, MicIcon, PlayIcon } from './shared/Icons';
-import { generatePronunciationAudio, recognizeHandwriting, transcribeAudio } from '../services/geminiService';
+import { recognizeHandwriting, transcribeAudio } from '../services/geminiService';
 import Loader from './shared/Loader';
 
 // Lesson Groups Data
@@ -374,22 +374,28 @@ const LessonDetailView: React.FC<{ lesson: typeof lessons[0]; onComplete: () => 
     const playAudio = async () => {
         setIsLoadingAudio(true);
         try {
-            const audioUrl = await generatePronunciationAudio(lesson.audioText);
-            // generatePronunciationAudio는 URL을 반환하므로 HTML Audio 요소 사용
-            const audio = new Audio(audioUrl);
-            audio.onended = () => {
+            // Web Speech API를 직접 사용 (더 안정적!)
+            const utterance = new SpeechSynthesisUtterance(lesson.audioText);
+            utterance.lang = 'ko-KR';
+            utterance.rate = 0.9;
+            utterance.pitch = 1;
+            
+            utterance.onend = () => {
                 setIsLoadingAudio(false);
                 setProgress(prev => ({ ...prev, reading: true }));
             };
-            audio.onerror = () => {
+            
+            utterance.onerror = (error) => {
+                console.error("TTS error:", error);
                 setIsLoadingAudio(false);
-                alert("오디오 재생에 실패했습니다. API 설정을 확인하거나 잠시 후 다시 시도해주세요.");
+                alert("음성 재생에 실패했습니다. 브라우저가 음성 합성을 지원하는지 확인해주세요.");
             };
-            await audio.play();
+            
+            window.speechSynthesis.speak(utterance);
         } catch (error) {
             console.error("Audio generation failed:", error);
             setIsLoadingAudio(false);
-            alert("오디오 생성에 실패했습니다. API 설정을 확인하거나 잠시 후 다시 시도해주세요.");
+            alert("음성 생성에 실패했습니다. 브라우저가 Web Speech API를 지원하지 않을 수 있습니다.");
         }
     };
     
