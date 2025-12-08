@@ -8,7 +8,7 @@
 
 ## 🔑 Step 2: OpenAI API Key 추가 (필수)
 
-`.env.local` 파일에 다음을 추가:
+`` 파일에 다음을 추가:
 
 ```
 VITE_OPENAI_API_KEY=sk-proj-여기에-당신의-OpenAI-키

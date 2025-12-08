@@ -4,10 +4,9 @@ import { recommendBooksByLevel, recommendBooksByMood } from '../services/geminiS
 import { Book } from '../types';
 import Loader from './shared/Loader';
 import { useLanguage } from '../contexts/LanguageContext';
-import { Bookmark, BookOpen, AlertTriangle } from 'lucide-react';
+import { Bookmark } from 'lucide-react';
 
 type RecType = 'level' | 'mood';
-type ViewType = 'recommend' | 'saved';
 
 const BookCard: React.FC<{ book: Book; isBookmarked?: boolean; onToggleBookmark?: (book: Book) => void }> = ({ book, isBookmarked = false, onToggleBookmark }) => {
     const { t } = useLanguage();
@@ -109,7 +108,6 @@ const BookCard: React.FC<{ book: Book; isBookmarked?: boolean; onToggleBookmark?
 
 const BookRecView: React.FC = () => {
     const { t } = useLanguage();
-    const [viewType, setViewType] = useState<ViewType>('recommend');
     const [recType, setRecType] = useState<RecType>('mood');
     const [level, setLevel] = useState('초급');
     const [results, setResults] = useState<Book[]>([]);
@@ -214,38 +212,13 @@ const BookRecView: React.FC = () => {
         }
     };
 
-    const handleViewTypeChange = (type: ViewType) => {
-        setViewType(type);
-        setError(null);
-    };
-
     return (
         <div className="flex flex-col space-y-6">
             <h2 className="text-2xl font-bold text-center">{t('books.title')}</h2>
-            
-            {/* 메인 탭: 추천받기 / 저장된 책 */}
             <div className="flex bg-gray-100 rounded-lg p-1 gap-1">
-                <button 
-                    onClick={() => handleViewTypeChange('recommend')} 
-                    className={`flex-1 p-2 rounded-md font-semibold transition text-sm ${viewType === 'recommend' ? 'bg-white text-[#D72638] shadow' : 'text-gray-600'}`}
-                >
-                    추천받기
-                </button>
-                <button 
-                    onClick={() => handleViewTypeChange('saved')} 
-                    className={`flex-1 p-2 rounded-md font-semibold transition text-sm ${viewType === 'saved' ? 'bg-white text-[#D72638] shadow' : 'text-gray-600'}`}
-                >
-                    저장된 책 ({savedBooks.length})
-                </button>
+                <button onClick={() => handleRecTypeChange('mood')} className={`flex-1 p-2 rounded-md font-semibold transition text-sm ${recType === 'mood' ? 'bg-white text-[#D72638] shadow' : 'text-gray-600'}`}>{t('books.recByMood')}</button>
+                <button onClick={() => handleRecTypeChange('level')} className={`flex-1 p-2 rounded-md font-semibold transition text-sm ${recType === 'level' ? 'bg-white text-[#D72638] shadow' : 'text-gray-600'}`}>{t('books.recByLevel')}</button>
             </div>
-
-            {viewType === 'recommend' && (
-                <>
-                    {/* 추천 타입 선택: 기분 / 수준 */}
-                    <div className="flex bg-gray-100 rounded-lg p-1 gap-1">
-                        <button onClick={() => handleRecTypeChange('mood')} className={`flex-1 p-2 rounded-md font-semibold transition text-sm ${recType === 'mood' ? 'bg-white text-[#D72638] shadow' : 'text-gray-600'}`}>{t('books.recByMood')}</button>
-                        <button onClick={() => handleRecTypeChange('level')} className={`flex-1 p-2 rounded-md font-semibold transition text-sm ${recType === 'level' ? 'bg-white text-[#D72638] shadow' : 'text-gray-600'}`}>{t('books.recByLevel')}</button>
-                    </div>
 
             {recType === 'mood' && (
                 <div className="flex flex-col space-y-6">
@@ -265,7 +238,7 @@ const BookRecView: React.FC = () => {
                                 { emoji: '🎁', label: '감사', value: '감사' },
                                 { emoji: '💫', label: '설렘', value: '설렘' },
                                 { emoji: '🌿', label: '평온', value: '평온' },
-                                { emoji: '🔥', label: '열정', value: '열정' },
+                                { emoji: '🔥', label: '불안', value: '불안' },
                                 { emoji: '☁️', label: '여유', value: '여유' },
                                 { emoji: '🌙', label: '외로움', value: '외로움' }
                             ].map(moodOption => (
@@ -343,115 +316,26 @@ const BookRecView: React.FC = () => {
                 </>
             )}
             
-                    {/* 결과 영역 */}
-                    {(results.length > 0 || error || (!isLoading && results.length === 0 && (recType === 'mood' ? mood : true))) && (
-                        <div className="rounded-2xl backdrop-blur-md p-6 transition-all duration-500 bg-white/40 border border-gray-200">
-                            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-gray-800">
-                                <span className="text-[#D72638]">&#10022;</span>
-                                {t('books.resultsTitle')}
-                            </h2>
-                            
-                            {isLoading && (
-                                <div className="flex justify-center items-center py-12">
-                                    <Loader />
-                                </div>
-                            )}
-                            
-                            {error && !isLoading && (
-                                <div className="text-center py-12 rounded-lg bg-red-50 text-red-600">
-                                    <AlertTriangle className="w-12 h-12 mb-4 mx-auto" />
-                                    <p className="text-lg font-bold mb-2">오류가 발생했어요</p>
-                                    <p className="text-sm px-4">{error}</p>
-                                </div>
-                            )}
-
-                            {!error && !isLoading && results.length === 0 && (
-                                <div className="text-center py-12 text-gray-500">
-                                    <BookOpen className="w-16 h-16 mb-6 mx-auto opacity-50" />
-                                    <p className="text-lg font-bold mb-2">당신의 이야기를 기다리고 있어요</p>
-                                    <p className="text-sm">위의 폼을 작성하고<br/>당신만의 책을 추천받아 보세요.</p>
-                                </div>
-                            )}
-                            
-                            {!error && !isLoading && results.length > 0 && (
-                                <div className="space-y-4 max-h-[85vh] overflow-y-auto custom-scrollbar pr-2 -mr-4">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                                            <Bookmark className="w-4 h-4" />
-                                            <span>{t('books.savedBooksCountWithNumber', { count: savedBooks.length })}</span>
-                                        </div>
-                                    </div>
-                                    {results.map((book, index) => {
-                                        // 고유 키 생성: ISBN이 있으면 ISBN + index, 없으면 title + author + index
-                                        const uniqueKey = book.isbn 
-                                            ? `${book.isbn}-${index}` 
-                                            : book.id 
-                                                ? `${book.id}-${index}`
-                                                : `${book.title}-${book.author}-${index}`;
-                                        
-                                        return (
-                                            <div key={uniqueKey} className="animate-fade-in-up" style={{ animationDelay: `${index * 0.1}s` }}>
-                                                <BookCard 
-                                                    book={book} 
-                                                    isBookmarked={isBookmarked(book)}
-                                                    onToggleBookmark={handleToggleBookmark}
-                                                />
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            )}
+            {isLoading && <Loader />}
+            {error && <p className="text-red-500 text-center">{error}</p>}
+            
+            {results.length > 0 && (
+                <div className="space-y-4 animate-fade-in-up">
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-xl font-bold text-center flex-1">{t('books.resultsTitle')}</h2>
+                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <Bookmark className="w-4 h-4" />
+                            <span>{t('books.savedBooksCountWithNumber', { count: savedBooks.length })}</span>
                         </div>
-                    )}
-                    
-                    {isLoading && results.length === 0 && (
-                        <div className="flex justify-center items-center py-12">
-                            <Loader />
-                        </div>
-                    )}
-                </>
-            )}
-
-            {viewType === 'saved' && (
-                <div className="rounded-2xl backdrop-blur-md p-6 transition-all duration-500 bg-white/40 border border-gray-200">
-                    <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-gray-800">
-                        <span className="text-[#D72638]">&#10022;</span>
-                        저장된 책
-                    </h2>
-                    
-                    {savedBooks.length === 0 ? (
-                        <div className="text-center py-12 text-gray-500">
-                            <BookOpen className="w-16 h-16 mb-6 mx-auto opacity-50" />
-                            <p className="text-lg font-bold mb-2">저장된 책이 없어요</p>
-                            <p className="text-sm">책 추천에서 북마크를 추가하면<br/>여기에서 볼 수 있어요.</p>
-                        </div>
-                    ) : (
-                        <div className="space-y-4 max-h-[85vh] overflow-y-auto custom-scrollbar pr-2 -mr-4">
-                            <div className="flex items-center justify-between mb-4">
-                                <div className="flex items-center gap-2 text-sm text-gray-600">
-                                    <Bookmark className="w-4 h-4" />
-                                    <span>총 {savedBooks.length}권</span>
-                                </div>
-                            </div>
-                            {savedBooks.map((book, index) => {
-                                const uniqueKey = book.isbn 
-                                    ? `${book.isbn}-${index}` 
-                                    : book.id 
-                                        ? `${book.id}-${index}`
-                                        : `${book.title}-${book.author}-${index}`;
-                                
-                                return (
-                                    <div key={uniqueKey} className="animate-fade-in-up" style={{ animationDelay: `${index * 0.1}s` }}>
-                                        <BookCard 
-                                            book={book} 
-                                            isBookmarked={true}
-                                            onToggleBookmark={handleToggleBookmark}
-                                        />
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    )}
+                    </div>
+                    {results.map((book, index) => (
+                        <BookCard 
+                            key={book.id || index} 
+                            book={book} 
+                            isBookmarked={isBookmarked(book)}
+                            onToggleBookmark={handleToggleBookmark}
+                        />
+                    ))}
                 </div>
             )}
         </div>

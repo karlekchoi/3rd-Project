@@ -87,24 +87,11 @@ export const getSlangDefinition = async (word: string, language: string = 'ko'):
 
 // ==================== 도서 추천 (백엔드 API 사용) ====================
 
-const getBackendUrl = (): string => {
-  const url = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001';
-  // URL이 빈 문자열이거나 잘못된 형식인 경우 기본값 사용
-  if (!url || url.trim() === '' || !url.startsWith('http')) {
-    return 'http://localhost:5001';
-  }
-  // URL 끝의 슬래시 제거
-  return url.replace(/\/$/, '');
-};
-
-const BACKEND_URL = getBackendUrl();
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001';
 
 export const recommendBooksByLevel = async (level: string): Promise<Book[]> => {
   try {
-    const url = `${BACKEND_URL}/recommend/books`;
-    console.log('도서 추천 요청 URL:', url);
-    
-    const response = await fetch(url, {
+    const response = await fetch(`${BACKEND_URL}/recommend/books`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -123,10 +110,6 @@ export const recommendBooksByLevel = async (level: string): Promise<Book[]> => {
     return books;
   } catch (error: any) {
     console.error("도서 추천 오류:", error);
-    // 네트워크 에러인 경우 더 명확한 메시지 제공
-    if (error.message?.includes('Failed to fetch') || error.message?.includes('ERR_FAILED')) {
-      throw new Error(`백엔드 서버에 연결할 수 없습니다. 서버가 실행 중인지 확인하세요. (${BACKEND_URL})`);
-    }
     throw new Error(`도서 추천 실패: ${error.message}`);
   }
 };
@@ -142,10 +125,7 @@ export const recommendBooksByMood = async (
   level?: string
 ): Promise<Book[]> => {
   try {
-    const url = `${BACKEND_URL}/recommend/books`;
-    console.log('기분 기반 도서 추천 요청 URL:', url);
-    
-    const response = await fetch(url, {
+    const response = await fetch(`${BACKEND_URL}/recommend/books`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -168,10 +148,6 @@ export const recommendBooksByMood = async (
     return books;
   } catch (error: any) {
     console.error("기분 기반 도서 추천 오류:", error);
-    // 네트워크 에러인 경우 더 명확한 메시지 제공
-    if (error.message?.includes('Failed to fetch') || error.message?.includes('ERR_FAILED')) {
-      throw new Error(`백엔드 서버에 연결할 수 없습니다. 서버가 실행 중인지 확인하세요. (${BACKEND_URL})`);
-    }
     throw new Error(`도서 추천 실패: ${error.message}`);
   }
 };
