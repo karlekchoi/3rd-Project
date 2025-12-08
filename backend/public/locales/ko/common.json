@@ -1,0 +1,13 @@
+{
+    "appTitle": "한글 정원",
+    "auth": {
+      "loginTitle": "로그인",
+      "email": "이메일",
+      "password": "비밀번호",
+      "login": "로그인",
+      "or": "또는",
+      "googleLogin": "Google로 로그인",
+      "noAccount": "계정이 없으신가요?",
+      "signupNow": "지금 가입하기"
+    }
+  }

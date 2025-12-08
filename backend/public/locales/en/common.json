@@ -1,0 +1,13 @@
+{
+    "appTitle": "Hangeul Garden",
+    "auth": {
+      "loginTitle": "Login",
+      "email": "Email",
+      "password": "Password",
+      "login": "Login",
+      "or": "or",
+      "googleLogin": "Login with Google",
+      "noAccount": "Don't have an account?",
+      "signupNow": "Sign up now"
+    }
+  }
