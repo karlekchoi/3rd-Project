@@ -200,7 +200,7 @@ const translateMeaning = async (meaning: string, language: string): Promise<stri
     const targetLanguage = languageNames[language] || 'English';
     
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-pro",
+      model: "gemini-1.5-flash",
       generationConfig: {
         temperature: 0.3,
         maxOutputTokens: 100,
