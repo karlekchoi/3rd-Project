@@ -66,7 +66,7 @@ export const getSlangDefinition = async (word: string, language: string = 'ko'):
   
   try {
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-1.5-flash",
+      model: "gemini-2.5-flash",
       generationConfig: {
         temperature: 0.3,
       }
@@ -243,7 +243,7 @@ export const recognizeHandwritingWithTrOCR = async (base64ImageData: string): Pr
 export const recognizeHandwritingWithGemini = async (base64ImageData: string): Promise<string> => {
   try {
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-1.5-flash",
+      model: "gemini-2.5-flash",
       generationConfig: {
         temperature: 0.1,
         maxOutputTokens: 100,
