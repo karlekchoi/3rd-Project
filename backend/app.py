@@ -1339,7 +1339,9 @@ if __name__ == '__main__':
     logger.info("=" * 60 + "\n")
     
     # Flask 서버 실행
-    app.run(host='0.0.0.0', port=5001, debug=True)
+    # Railway는 PORT 환경 변수를 제공하므로 사용, 없으면 기본값 5001
+    port = int(os.getenv('PORT', 5001))
+    app.run(host='0.0.0.0', port=port, debug=False)
 
 
 
