@@ -273,11 +273,11 @@ export const recognizeHandwritingWithGemini = async (base64ImageData: string): P
 /**
  * 손글씨 인식 메인 함수
  * 
- * 배포 환경: TrOCR 백엔드 > Gemini (MCP 사용 안 함)
- * 개발 환경: MCP > TrOCR 백엔드 > Gemini (환경 변수로 제어)
+ * 속도 최적화: Gemini > TrOCR 백엔드
+ * Gemini가 훨씬 빠르고 정확해요! (2-5초 vs 15-45초)
  */
 export const recognizeHandwriting = async (base64ImageData: string): Promise<string> => {
-  // 배포 환경에서는 MCP를 사용하지 않고 TrOCR을 직접 사용
+  // 배포 환경에서는 빠른 Gemini를 우선 사용
   const isProduction = import.meta.env.PROD;
   const useMCP = import.meta.env.VITE_USE_MCP === 'true' && !isProduction;
   
@@ -287,20 +287,26 @@ export const recognizeHandwriting = async (base64ImageData: string): Promise<str
       console.log('MCP를 사용하여 손글씨 인식 시도...');
       return await recognizeHandwritingWithMCP(base64ImageData);
     } catch (mcpError: any) {
-      console.warn("MCP 손글씨 인식 실패, TrOCR로 대체:", mcpError);
-      // MCP 실패 시 TrOCR로 fallback
+      console.warn("MCP 손글씨 인식 실패, Gemini로 대체:", mcpError);
+      // MCP 실패 시 Gemini로 fallback
     }
   }
   
-  // 배포 환경 또는 MCP 사용 안 함/실패 시: TrOCR 백엔드 사용
+  // 배포 환경: Gemini 우선 (빠름!) → TrOCR 백업
   try {
-    console.log('TrOCR 백엔드를 사용하여 손글씨 인식 시도...');
-    return await recognizeHandwritingWithTrOCR(base64ImageData);
-  } catch (trocrError: any) {
-    console.warn("TrOCR 백엔드 실패, Gemini로 대체:", trocrError);
-    
-    // TrOCR 실패 시 Gemini로 fallback
+    console.log('⚡ Gemini로 빠른 손글씨 인식 시도...');
     return await recognizeHandwritingWithGemini(base64ImageData);
+  } catch (geminiError: any) {
+    console.warn("Gemini 실패, TrOCR 백엔드로 대체:", geminiError);
+    
+    // Gemini 실패 시에만 TrOCR 사용
+    try {
+      console.log('TrOCR 백엔드를 사용하여 손글씨 인식 시도...');
+      return await recognizeHandwritingWithTrOCR(base64ImageData);
+    } catch (trocrError: any) {
+      console.error("모든 손글씨 인식 방법 실패:", trocrError);
+      throw new Error("손글씨 인식에 실패했습니다.");
+    }
   }
 };
 
