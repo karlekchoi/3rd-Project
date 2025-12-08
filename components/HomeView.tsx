@@ -15,18 +15,10 @@ const HomeView: React.FC<HomeViewProps> = ({ setCurrentView }) => {
       {/* Hero Banner */}
       <div className="w-full relative mb-12">
         {/* Main Banner */}
-        <div className="relative w-full bg-gradient-to-br from-pink-100 via-purple-100 to-blue-100 rounded-3xl overflow-hidden shadow-lg border-2 border-pink-200 min-h-[300px]">
-          
-          {/* Flowers Decoration - Modern and clean */}
-          <div className="absolute bottom-0 left-0 z-30 text-5xl opacity-50" style={{ transform: 'translate(-20px, 30px) rotate(15deg)' }}>🌸</div>
-          <div className="absolute bottom-8 left-16 z-30 text-4xl opacity-50" style={{ transform: 'rotate(-10deg)' }}>🌷</div>
-          
-          <div className="absolute bottom-0 right-0 z-30 text-5xl opacity-50" style={{ transform: 'translate(20px, 30px) rotate(-15deg)' }}>🌻</div>
-          <div className="absolute bottom-8 right-16 z-30 text-4xl opacity-50" style={{ transform: 'rotate(10deg)' }}>🌺</div>
-
+        <div className="relative w-full bg-gradient-to-r from-[#D72638] to-[#FF6B6B] rounded-3xl overflow-hidden shadow-lg border-2 border-red-200 min-h-[300px]">
           {/* Content */}
           <div className="relative z-40 flex flex-col items-center justify-center py-16 px-8 text-center">
-            <div className="bg-white/80 backdrop-blur-sm px-12 py-10 rounded-2xl shadow-lg border-2 border-pink-200 max-w-3xl">
+            <div className="bg-white/90 backdrop-blur-sm px-12 py-10 rounded-2xl shadow-lg border-2 border-red-200 max-w-3xl">
               <h1 className="text-4xl md:text-5xl font-bold text-[#D72638] mb-4 leading-tight">
                 한글정원에 오신 것을 환영합니다!
               </h1>

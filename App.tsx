@@ -11,6 +11,7 @@ import { useLanguage } from './contexts/LanguageContext';
 import LoginView from './components/auth/LoginView';
 import SignupView from './components/auth/SignupView';
 import KoreanStudyView from './components/KoreanStudyView';
+import BottomNav from './components/BottomNav';
 
 // 언어 선택 컴포넌트
 const LanguageSelector: React.FC<{ language: string; setLanguage: (lang: 'ko' | 'en' | 'ja' | 'zh' | 'vi' | 'fr' | 'sv') => void }> = ({ language, setLanguage }) => {
@@ -38,12 +39,12 @@ const LanguageSelector: React.FC<{ language: string; setLanguage: (lang: 'ko' | 
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-1 px-3 py-1.5 rounded-full border-2 border-red-200 hover:border-[#D72638] transition-all bg-white shadow-sm"
+        className="flex items-center gap-0.5 md:gap-1 px-1.5 md:px-2 lg:px-3 py-1 md:py-1.5 rounded-full border-2 border-red-200 hover:border-[#D72638] transition-all bg-white shadow-sm"
         title="언어 선택"
       >
-        <span className="text-lg">{langFlags[language] || '🌐'}</span>
-        <span className="text-sm font-medium text-gray-700 hidden sm:inline">{langNames[language]}</span>
-        <svg className={`w-4 h-4 text-gray-600 transition-transform ${isOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <span className="text-base md:text-lg">{langFlags[language] || '🌐'}</span>
+        <span className="text-xs md:text-sm font-medium text-gray-700 hidden lg:inline">{langNames[language]}</span>
+        <svg className={`w-3 h-3 md:w-4 md:h-4 text-gray-600 transition-transform ${isOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
@@ -120,7 +121,7 @@ const SettingsView: React.FC = () => {
 
       {/* 프로필 카드 */}
       <div className="bg-white rounded-2xl shadow-lg border-2 border-gray-100 overflow-hidden">
-        <div className="bg-gradient-to-r from-[#5D7052] to-[#4A5D3F] h-32"></div>
+        <div className="bg-gradient-to-r from-red-200 via-pink-200 to-red-200 h-32"></div>
         <div className="px-8 pb-8">
           <div className="flex flex-col items-center -mt-16">
             {/* 프로필 이미지 */}
@@ -133,7 +134,7 @@ const SettingsView: React.FC = () => {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-[#5D7052] to-[#4A5D3F] flex items-center justify-center text-white font-bold text-5xl">
+                  <div className="w-full h-full bg-gradient-to-br from-[#D72638] to-[#FF6B6B] flex items-center justify-center text-white font-bold text-5xl">
                     {currentUser.nickname.charAt(0).toUpperCase()}
                   </div>
                 )}
@@ -418,102 +419,133 @@ const MainApp: React.FC = () => {
   return (
     <div className="min-h-screen bg-white flex flex-col font-['Gowun_Dodum']">
         {/* Header */}
-        <header className="bg-white shadow-sm border-b-2 border-red-100">
-            <div className="container mx-auto px-6 h-16 flex justify-between items-center">
-                <div 
-                  className="flex items-center gap-2 cursor-pointer" 
-                  onClick={() => setCurrentView(View.Home)}
-                >
-                  <span className="text-[#D72638] text-2xl">🌺</span>
-                  <h1 className="text-2xl font-bold text-[#293241]">{t('common.appTitle')}</h1>
+        <header className="bg-white shadow-sm border-b-2 border-red-100 relative z-10">
+            <div className="container mx-auto px-2 md:px-4 lg:px-6 h-14 md:h-16">
+                {/* 웹 레이아웃: 네비게이션 가운데, 버튼 오른쪽 */}
+                <div className="hidden md:flex items-center h-full relative">
+                    {/* 왼쪽 빈 공간 (균형을 위해) */}
+                    <div className="flex-1 min-w-[60px] md:min-w-[80px] lg:min-w-[120px]"></div>
+                    
+                    {/* 웹 네비게이션 (가운데) */}
+                    <nav className="absolute left-1/2 transform -translate-x-1/2 flex items-center text-[#293241] gap-2 md:gap-3 lg:gap-4 xl:gap-5 max-w-[calc(100%-200px)] md:max-w-[calc(100%-240px)] lg:max-w-[calc(100%-280px)]">
+                        <button onClick={() => setCurrentView(View.Dictionary)} className={`hover:text-[#D72638] transition whitespace-nowrap px-2 md:px-2.5 lg:px-3 text-sm md:text-base lg:text-lg font-semibold flex-shrink-0 tracking-wide ${currentView === View.Dictionary ? 'text-[#D72638]' : ''}`}>{t('nav.dictionary')}</button>
+                        <button onClick={() => setCurrentView(View.KoreanStudy)} className={`hover:text-[#D72638] transition whitespace-nowrap px-2 md:px-2.5 lg:px-3 text-sm md:text-base lg:text-lg font-semibold flex-shrink-0 tracking-wide ${currentView === View.KoreanStudy ? 'text-[#D72638]' : ''}`}>
+                            <span className="hidden lg:inline">{t('nav.koreanStudy')}</span>
+                            <span className="lg:hidden">한국어</span>
+                        </button>
+                        <button onClick={() => setCurrentView(View.Games)} className={`hover:text-[#D72638] transition whitespace-nowrap px-2 md:px-2.5 lg:px-3 text-sm md:text-base lg:text-lg font-semibold flex-shrink-0 tracking-wide ${currentView === View.Games ? 'text-[#D72638]' : ''}`}>{t('nav.games')}</button>
+                        <button onClick={() => setCurrentView(View.Books)} className={`hover:text-[#D72638] transition whitespace-nowrap px-2 md:px-2.5 lg:px-3 text-sm md:text-base lg:text-lg font-semibold flex-shrink-0 tracking-wide ${currentView === View.Books ? 'text-[#D72638]' : ''}`}>{t('nav.books')}</button>
+                        <button onClick={() => setCurrentView(View.Vocabulary)} className={`hover:text-[#D72638] transition whitespace-nowrap px-2 md:px-2.5 lg:px-3 text-sm md:text-base lg:text-lg font-semibold flex-shrink-0 tracking-wide ${currentView === View.Vocabulary ? 'text-[#D72638]' : ''}`}>
+                            <span className="hidden xl:inline">{t('nav.vocabulary')}</span>
+                            <span className="xl:hidden hidden lg:inline">나의 정원</span>
+                            <span className="lg:hidden">정원</span>
+                        </button>
+                    </nav>
+
+                    {/* 오른쪽 버튼들 */}
+                    <div className="flex items-center gap-1.5 md:gap-2 lg:gap-3 ml-auto flex-shrink-0 min-w-[100px] md:min-w-[120px] lg:min-w-[140px]">
+                        {currentUser ? (
+                          <>
+                            {/* 언어 선택 드롭다운 */}
+                            <LanguageSelector language={language} setLanguage={setLanguage} />
+                            
+                            <span className="text-xs md:text-sm text-[#5D4037] font-medium hidden xl:inline">
+                              {currentUser.nickname}{t('common.nicknameSuffix')}
+                            </span>
+                            <button 
+                              onClick={() => setCurrentView(View.Settings)}
+                              className="relative w-8 h-8 md:w-9 md:h-9 lg:w-10 lg:h-10 rounded-full overflow-hidden border-2 border-red-200 hover:border-[#D72638] transition-all hover:scale-110 shadow-md flex-shrink-0"
+                              title={t('settings.myPage')}
+                            >
+                              {currentUser.profileImage ? (
+                                <img 
+                                  src={currentUser.profileImage} 
+                                  alt={currentUser.nickname}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-full h-full bg-gradient-to-br from-[#D72638] to-[#FF6B6B] flex items-center justify-center text-white font-bold text-sm md:text-base lg:text-lg">
+                                  {currentUser.nickname.charAt(0).toUpperCase()}
+                                </div>
+                              )}
+                            </button>
+                          </>
+                        ) : (
+                          <button 
+                            onClick={() => setCurrentView(View.Settings)}
+                            className="px-3 md:px-4 lg:px-5 py-1.5 md:py-2 bg-[#D72638] text-white rounded-full text-xs md:text-sm lg:text-base font-bold hover:bg-[#b8202f] transition shadow-md whitespace-nowrap"
+                          >
+                            {t('common.login')}
+                          </button>
+                        )}
+                    </div>
                 </div>
 
-                <nav className="hidden md:flex gap-6 items-center text-base font-semibold text-[#293241]">
-                    <button onClick={() => setCurrentView(View.Dictionary)} className={`hover:text-[#D72638] transition ${currentView === View.Dictionary ? 'text-[#D72638]' : ''}`}>{t('nav.dictionary')}</button>
-                    <button onClick={() => setCurrentView(View.KoreanStudy)} className={`hover:text-[#D72638] transition ${currentView === View.KoreanStudy ? 'text-[#D72638]' : ''}`}>{t('nav.koreanStudy')}</button>
-                    <button onClick={() => setCurrentView(View.Games)} className={`hover:text-[#D72638] transition ${currentView === View.Games ? 'text-[#D72638]' : ''}`}>{t('nav.games')}</button>
-                    <button onClick={() => setCurrentView(View.Books)} className={`hover:text-[#D72638] transition ${currentView === View.Books ? 'text-[#D72638]' : ''}`}>{t('nav.books')}</button>
-                    <button onClick={() => setCurrentView(View.Vocabulary)} className={`hover:text-[#D72638] transition ${currentView === View.Vocabulary ? 'text-[#D72638]' : ''}`}>{t('nav.vocabulary')}</button>
-                </nav>
-
-                <div className="flex items-center gap-3">
-                    {currentUser ? (
-                      <>
-                        {/* 언어 선택 드롭다운 */}
-                        <LanguageSelector language={language} setLanguage={setLanguage} />
-                        
-                        <span className="text-sm text-[#5D4037] font-medium hidden md:inline">
-                          {currentUser.nickname}{t('common.nicknameSuffix')}
-                        </span>
-                        <button 
-                          onClick={() => setCurrentView(View.Settings)}
-                          className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-[#5D7052] hover:border-[#D72638] transition-all hover:scale-110 shadow-md"
-                          title={t('settings.myPage')}
-                        >
-                          {currentUser.profileImage ? (
-                            <img 
-                              src={currentUser.profileImage} 
-                              alt={currentUser.nickname}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-gradient-to-br from-[#5D7052] to-[#4A5D3F] flex items-center justify-center text-white font-bold text-lg">
-                              {currentUser.nickname.charAt(0).toUpperCase()}
-                            </div>
-                          )}
-                        </button>
-                      </>
-                    ) : (
-                      <button 
-                        onClick={() => setCurrentView(View.Settings)}
-                        className="px-5 py-2 bg-[#5D7052] text-white rounded-full font-bold hover:bg-[#4A5D3F] transition shadow-md"
-                      >
-                        {t('common.login')}
-                      </button>
-                    )}
+                {/* 모바일 레이아웃: 제목 가운데, 버튼 오른쪽 */}
+                <div className="md:hidden flex items-center justify-between h-full">
+                    {/* 왼쪽 빈 공간 (균형을 위해) */}
+                    <div className="flex-1"></div>
+                    
+                    {/* 가운데 제목 */}
+                    <h1 className="text-xl font-bold text-[#D72638] absolute left-1/2 transform -translate-x-1/2">
+                        {t('common.appTitle')}
+                    </h1>
+                    
+                    {/* 오른쪽 버튼들 */}
+                    <div className="flex items-center gap-2 flex-1 justify-end">
+                        {currentUser ? (
+                          <>
+                            {/* 언어 선택 드롭다운 */}
+                            <LanguageSelector language={language} setLanguage={setLanguage} />
+                            
+                            <button 
+                              onClick={() => setCurrentView(View.Settings)}
+                              className="relative w-8 h-8 md:w-9 md:h-9 lg:w-10 lg:h-10 rounded-full overflow-hidden border-2 border-red-200 hover:border-[#D72638] transition-all hover:scale-110 shadow-md flex-shrink-0"
+                              title={t('settings.myPage')}
+                            >
+                              {currentUser.profileImage ? (
+                                <img 
+                                  src={currentUser.profileImage} 
+                                  alt={currentUser.nickname}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-full h-full bg-gradient-to-br from-[#D72638] to-[#FF6B6B] flex items-center justify-center text-white font-bold text-sm md:text-base lg:text-lg">
+                                  {currentUser.nickname.charAt(0).toUpperCase()}
+                                </div>
+                              )}
+                            </button>
+                          </>
+                        ) : (
+                          <button 
+                            onClick={() => setCurrentView(View.Settings)}
+                            className="px-5 py-2 bg-[#D72638] text-white rounded-full font-bold hover:bg-[#b8202f] transition shadow-md text-sm"
+                          >
+                            {t('common.login')}
+                          </button>
+                        )}
+                    </div>
                 </div>
             </div>
         </header>
 
-        <main className="flex-grow container mx-auto px-4 py-8 max-w-7xl">
+        <main className="flex-grow container mx-auto px-4 py-8 pb-20 md:pb-8 max-w-7xl">
           {renderView()}
         </main>
 
-        {/* Footer */}
-        <footer className="bg-[#E8DCC8] text-[#293241] mt-auto">
-             {/* Dancheong Pattern Line Top */}
-             <div className="h-4 w-full bg-repeat-x" style={{
-                backgroundImage: 'linear-gradient(90deg, #D72638 0%, #D72638 12.5%, #fff 12.5%, #fff 25%, #3D5A80 25%, #3D5A80 37.5%, #fff 37.5%, #fff 50%, #00916E 50%, #00916E 62.5%, #fff 62.5%, #fff 75%, #F4D35E 75%, #F4D35E 87.5%, #fff 87.5%, #fff 100%)',
-                backgroundSize: '80px 100%',
-                borderTop: '3px solid #3E2723',
-                borderBottom: '3px solid #3E2723'
-            }}></div>
+        {/* Bottom Navigation for Mobile */}
+        <div className="md:hidden">
+          <BottomNav currentView={currentView} setCurrentView={setCurrentView} />
+        </div>
 
-            <div className="container mx-auto px-6 py-10 flex flex-col md:flex-row justify-between items-center">
-                <div className="flex gap-10 mb-6 md:mb-0 text-sm font-semibold">
-                    <a href="#" className="hover:text-[#D72638] transition">About Us</a>
-                    <a href="#" className="hover:text-[#D72638] transition">Contact</a>
-                    <a href="#" className="hover:text-[#D72638] transition">Privacy Policy</a>
+        {/* Footer */}
+        <footer className="bg-white border-t-2 border-red-100 mt-auto">
+            <div className="container mx-auto px-6 py-8">
+                <div className="text-center">
+                    <p className="text-sm text-[#D72638] font-medium">
+                        © 2025 Hangeul Garden. All rights reserved.
+                    </p>
                 </div>
-                
-                <div className="flex gap-4">
-                     {/* Social Media Icons */}
-                     <a href="#" className="w-10 h-10 rounded-full bg-gradient-to-br from-[#E1306C] to-[#C13584] text-white flex items-center justify-center hover:scale-110 transition shadow-md">
-                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
-                     </a>
-                     <a href="#" className="w-10 h-10 rounded-full bg-[#FF0000] text-white flex items-center justify-center hover:scale-110 transition shadow-md">
-                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-                     </a>
-                     <a href="#" className="w-10 h-10 rounded-full bg-[#1877F2] text-white flex items-center justify-center hover:scale-110 transition shadow-md">
-                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-                     </a>
-                     <a href="#" className="w-10 h-10 rounded-full bg-[#1DA1F2] text-white flex items-center justify-center hover:scale-110 transition shadow-md">
-                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg>
-                     </a>
-                </div>
-            </div>
-            <div className="text-center pb-6 text-xs text-[#5D4037] opacity-70">
-                © 2024 Hangeul Garden. All rights reserved.
             </div>
         </footer>
     </div>
@@ -528,7 +560,7 @@ const App: React.FC = () => {
   if (!currentUser) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center p-4">
-        <div className="container mx-auto max-w-sm">
+        <div className="container mx-auto max-w-md">
           {isLoginView ? (
             <LoginView onSwitchToSignup={() => setIsLoginView(false)} />
           ) : (

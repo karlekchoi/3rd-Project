@@ -1,11 +1,8 @@
 import { SlangEntry, GlossaryData, FavoritesData, GameQuestion, GameOption, AnswerFeedback, GameStatus, WordbookComplete } from '../types';
-import OpenAI from "openai";
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
-const openai = API_KEY ? new OpenAI({
-  apiKey: API_KEY,
-  dangerouslyAllowBrowser: true
-}) : null;
+const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+const genAI = API_KEY ? new GoogleGenerativeAI(API_KEY) : null;
 
 // ==================== 게임 상태 관리 ====================
 
@@ -186,8 +183,8 @@ export const startGame = async (): Promise<GameQuestion | { error: boolean; code
 
 // 의미 번역 함수
 const translateMeaning = async (meaning: string, language: string): Promise<string> => {
-  if (language === 'ko' || !openai) {
-    return meaning; // 한국어이거나 OpenAI가 없으면 원문 반환
+  if (language === 'ko' || !genAI) {
+    return meaning; // 한국어이거나 Gemini가 없으면 원문 반환
   }
 
   try {
@@ -202,23 +199,20 @@ const translateMeaning = async (meaning: string, language: string): Promise<stri
 
     const targetLanguage = languageNames[language] || 'English';
     
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content: `You are a translator. Translate the Korean text to ${targetLanguage} accurately. Only return the translation, no additional text.`
-        },
-        {
-          role: "user",
-          content: meaning
-        }
-      ],
-      temperature: 0.3,
-      max_tokens: 100
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-pro",
+      generationConfig: {
+        temperature: 0.3,
+        maxOutputTokens: 100,
+      }
     });
 
-    return response.choices[0].message.content?.trim() || meaning;
+    const prompt = `You are a translator. Translate the Korean text to ${targetLanguage} accurately. Only return the translation, no additional text.\n\nKorean text: ${meaning}`;
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const translated = response.text().trim();
+
+    return translated || meaning;
   } catch (error) {
     console.error('번역 실패:', error);
     return meaning; // 번역 실패 시 원문 반환

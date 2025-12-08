@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { getSlangDefinition } from '../services/openaiService';
+import { getSlangDefinition } from '../services/geminiService';
 import { DictionaryEntry, VocabWord, VocabFolder } from '../types';
 import { MugunghwaIcon, MicIcon } from './shared/Icons';
 import Loader from './shared/Loader';
@@ -233,18 +233,12 @@ const DictionaryView: React.FC = () => {
   return (
     <div className="flex flex-col gap-8">
        {/* Dictionary Banner */}
-       <div className="w-full bg-gradient-to-r from-[#D72638] to-[#FF6B6B] rounded-2xl relative overflow-hidden p-8 text-center text-white shadow-lg">
-            <div className="absolute top-0 left-0 w-full h-full opacity-5 bg-[url('https://www.transparenttextures.com/patterns/korean-pattern.png')]"></div>
-            <h2 className="text-4xl font-bold mb-2 relative z-10 flex items-center justify-center gap-3">
+       <div className="w-full bg-gradient-to-r from-[#D72638] to-[#FF6B6B] rounded-2xl p-8 text-center text-white shadow-lg">
+            <h2 className="text-4xl font-bold mb-2 flex items-center justify-center gap-3">
               <span>📖</span>
               <span>{t('common.appTitle')} {t('nav.dictionary')}</span>
             </h2>
-            <p className="text-lg opacity-95 relative z-10">{t('dictionary.placeholder')}</p>
-            {/* Decorative corners - Modern flower design */}
-            <div className="absolute top-3 left-3 text-2xl opacity-60">🌸</div>
-            <div className="absolute top-3 right-3 text-2xl opacity-60">🌷</div>
-            <div className="absolute bottom-3 left-3 text-2xl opacity-60">🌺</div>
-            <div className="absolute bottom-3 right-3 text-2xl opacity-60">🌻</div>
+            <p className="text-lg opacity-95">{t('dictionary.placeholder')}</p>
        </div>
 
        {/* Hashtag Menu */}

@@ -2,8 +2,8 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 
 // Firebase 설정
-// TODO: Firebase Console에서 받은 실제 값으로 교체하세요!
-// https://console.firebase.google.com/
+// 환경 변수(.env.local)에서 자동으로 로드됩니다
+// 설정 방법: FIREBASE_SETUP.md 참고
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "YOUR_API_KEY",
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "YOUR_PROJECT.firebaseapp.com",

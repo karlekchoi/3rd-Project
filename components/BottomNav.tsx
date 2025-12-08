@@ -34,7 +34,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ currentView, setCurrentView }) =>
   const { t } = useLanguage();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 h-16 bg-white border-t-2 border-red-100 flex justify-around items-center max-w-lg mx-auto z-20 shadow-lg">
+    <nav className="fixed bottom-0 left-0 right-0 h-16 bg-white border-t-2 border-red-100 flex justify-around items-center z-20 shadow-lg">
       <NavItem view={View.Dictionary} currentView={currentView} setCurrentView={setCurrentView} label={t('nav.dictionary')}>
         <HomeIcon />
       </NavItem>

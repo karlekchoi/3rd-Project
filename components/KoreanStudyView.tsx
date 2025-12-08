@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { GraduationCapIcon, ArrowLeftIcon, MicIcon, PlayIcon } from './shared/Icons';
-import { generatePronunciationAudio, recognizeHandwriting, transcribeAudio } from '../services/openaiService';
+import { generatePronunciationAudio, recognizeHandwriting, transcribeAudio } from '../services/geminiService';
 import Loader from './shared/Loader';
 
 // Lesson Groups Data

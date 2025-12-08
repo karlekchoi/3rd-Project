@@ -12,6 +12,10 @@ ENV/
 dist/
 build/
 
+# 환경 변수
+.env
+.env.local
+
 # 모델 캐시
 .cache/
 huggingface/
