@@ -135,9 +135,18 @@ export const recommendBooksByLevelWithGemini = async (level: string): Promise<Bo
 };
 
 /**
- * 레벨별 책 추천 (백엔드 시도 → 실패 시 Gemini)
+ * 레벨별 책 추천 (Gemini 우선)
  */
 export const recommendBooksByLevel = async (level: string): Promise<Book[]> => {
+  // 배포 환경에서는 Gemini만 사용 (빠르고 안정적)
+  const useGeminiOnly = import.meta.env.PROD;
+  
+  if (useGeminiOnly) {
+    console.log("⚡ Gemini 직접 사용 (배포 환경)");
+    return recommendBooksByLevelWithGemini(level);
+  }
+  
+  // 개발 환경에서만 백엔드 시도
   try {
     // 백엔드 시도 (15초 타임아웃)
     const controller = new AbortController();
@@ -229,7 +238,7 @@ ${level ? `- 한국어 수준: ${level}` : ''}
 };
 
 /**
- * 기분, 상황, 목적 기반 책 추천 (백엔드 시도 → 실패 시 Gemini)
+ * 기분, 상황, 목적 기반 책 추천 (Gemini 우선)
  */
 export const recommendBooksByMood = async (
   mood: string,
@@ -238,6 +247,15 @@ export const recommendBooksByMood = async (
   genre?: string,
   level?: string
 ): Promise<Book[]> => {
+  // 배포 환경에서는 Gemini만 사용 (빠르고 안정적)
+  const useGeminiOnly = import.meta.env.PROD;
+  
+  if (useGeminiOnly) {
+    console.log("⚡ Gemini 직접 사용 (배포 환경)");
+    return recommendBooksByMoodWithGemini(mood, situation, purpose, genre, level);
+  }
+  
+  // 개발 환경에서만 백엔드 시도
   try {
     // 백엔드 시도 (15초 타임아웃)
     const controller = new AbortController();
