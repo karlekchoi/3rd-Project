@@ -233,13 +233,13 @@ const BookRecView: React.FC = () => {
                                 { emoji: '😵', label: '피곤', value: '피곤' },
                                 { emoji: '💗', label: '행복', value: '행복' },
                                 { emoji: '🧐', label: '몰입', value: '몰입' },
-                                { emoji: '🌧️', label: '불안', value: '불안' },
+                                { emoji: '🌧️', label: '우울', value: '우울' },
                                 { emoji: '🍠', label: '답답', value: '답답' },
                                 { emoji: '🎁', label: '감사', value: '감사' },
-                                { emoji: '💫', label: '설렘', value: '설렘' },
+                                { emoji: '✨', label: '설렘', value: '설렘' },
                                 { emoji: '🌿', label: '평온', value: '평온' },
                                 { emoji: '🔥', label: '불안', value: '불안' },
-                                { emoji: '☁️', label: '여유', value: '여유' },
+                                { emoji: '🎵', label: '여유', value: '여유' },
                                 { emoji: '🌙', label: '외로움', value: '외로움' }
                             ].map(moodOption => (
                                 <button

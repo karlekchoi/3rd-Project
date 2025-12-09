@@ -85,12 +85,64 @@ export const getSlangDefinition = async (word: string, language: string = 'ko'):
   }
 };
 
-// ==================== 도서 추천 (백엔드 API 사용) ====================
+// ==================== 도서 추천 (Gemini 직접 사용) ====================
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001';
 
+/**
+ * Gemini AI로 직접 책 추천 (빠른 버전)
+ */
+export const recommendBooksByLevelWithGemini = async (level: string): Promise<Book[]> => {
+  try {
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-2.5-flash",
+      generationConfig: {
+        temperature: 0.8,
+      }
+    });
+
+    const prompt = `한국어 학습자를 위한 ${level} 수준의 책 5권을 추천해주세요.
+
+응답은 반드시 다음 JSON 형식으로만 작성하세요:
+[
+  {
+    "title": "책 제목",
+    "author": "저자명",
+    "description": "왜 이 책을 추천하는지 2-3문장으로 설명"
+  }
+]
+
+중요:
+- 한국어로 된 책만 추천
+- ${level} 수준에 맞는 난이도
+- 실제로 존재하는 인기 도서만
+- 반드시 JSON 배열로만 응답`;
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
+    
+    const parsed = extractJSON(text);
+    return parsed.map((book: any) => ({
+      ...book,
+      coverImageUrl: undefined,
+      isbn: undefined,
+    }));
+  } catch (error: any) {
+    console.error("Gemini 도서 추천 오류:", error);
+    throw new Error(`도서 추천 실패: ${error.message}`);
+  }
+};
+
+/**
+ * 레벨별 책 추천 (백엔드 시도 → 실패 시 Gemini)
+ */
 export const recommendBooksByLevel = async (level: string): Promise<Book[]> => {
   try {
+    // 백엔드 시도 (3초 타임아웃)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000);
+    
     const response = await fetch(`${BACKEND_URL}/recommend/books`, {
       method: 'POST',
       headers: {
@@ -99,8 +151,11 @@ export const recommendBooksByLevel = async (level: string): Promise<Book[]> => {
       body: JSON.stringify({
         type: 'level',
         level: level
-      })
+      }),
+      signal: controller.signal
     });
+
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       throw new Error(`서버 오류: ${response.status}`);
@@ -109,13 +164,72 @@ export const recommendBooksByLevel = async (level: string): Promise<Book[]> => {
     const books = await response.json();
     return books;
   } catch (error: any) {
-    console.error("도서 추천 오류:", error);
+    console.warn("백엔드 도서 추천 실패, Gemini로 전환:", error.message);
+    // 백엔드 실패 시 Gemini 사용
+    return recommendBooksByLevelWithGemini(level);
+  }
+};
+
+/**
+ * Gemini AI로 직접 기분별 책 추천 (빠른 버전)
+ */
+export const recommendBooksByMoodWithGemini = async (
+  mood: string,
+  situation?: string,
+  purpose?: string,
+  genre?: string,
+  level?: string
+): Promise<Book[]> => {
+  try {
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-2.5-flash",
+      generationConfig: {
+        temperature: 0.9,
+      }
+    });
+
+    const prompt = `한국어 학습자를 위한 책 추천:
+- 기분: ${mood}
+${situation ? `- 상황: ${situation}` : ''}
+${purpose ? `- 목적: ${purpose}` : ''}
+${genre ? `- 선호 장르: ${genre}` : ''}
+${level ? `- 한국어 수준: ${level}` : ''}
+
+위 조건에 맞는 한국어 책 5권을 추천해주세요.
+
+응답은 반드시 다음 JSON 형식으로만 작성하세요:
+[
+  {
+    "title": "책 제목",
+    "author": "저자명",
+    "description": "왜 이 책이 현재 기분/상황에 맞는지 2-3문장으로 설명"
+  }
+]
+
+중요:
+- 한국어로 된 책만 추천
+- 실제로 존재하는 인기 도서만
+- 현재 기분과 상황에 공감하는 추천 이유 작성
+- 반드시 JSON 배열로만 응답`;
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
+    
+    const parsed = extractJSON(text);
+    return parsed.map((book: any) => ({
+      ...book,
+      coverImageUrl: undefined,
+      isbn: undefined,
+    }));
+  } catch (error: any) {
+    console.error("Gemini 기분별 도서 추천 오류:", error);
     throw new Error(`도서 추천 실패: ${error.message}`);
   }
 };
 
 /**
- * 기분, 상황, 목적 기반 책 추천 (백엔드 API 사용)
+ * 기분, 상황, 목적 기반 책 추천 (백엔드 시도 → 실패 시 Gemini)
  */
 export const recommendBooksByMood = async (
   mood: string,
@@ -125,6 +239,10 @@ export const recommendBooksByMood = async (
   level?: string
 ): Promise<Book[]> => {
   try {
+    // 백엔드 시도 (3초 타임아웃)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000);
+    
     const response = await fetch(`${BACKEND_URL}/recommend/books`, {
       method: 'POST',
       headers: {
@@ -137,8 +255,11 @@ export const recommendBooksByMood = async (
         purpose: purpose || '',
         genre: genre || '',
         moodLevel: level || ''
-      })
+      }),
+      signal: controller.signal
     });
+
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       throw new Error(`서버 오류: ${response.status}`);
@@ -147,8 +268,9 @@ export const recommendBooksByMood = async (
     const books = await response.json();
     return books;
   } catch (error: any) {
-    console.error("기분 기반 도서 추천 오류:", error);
-    throw new Error(`도서 추천 실패: ${error.message}`);
+    console.warn("백엔드 기분별 도서 추천 실패, Gemini로 전환:", error.message);
+    // 백엔드 실패 시 Gemini 사용
+    return recommendBooksByMoodWithGemini(mood, situation, purpose, genre, level);
   }
 };
 
