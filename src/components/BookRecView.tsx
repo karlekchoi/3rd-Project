@@ -87,7 +87,7 @@ const BookCard: React.FC<{ book: Book; isBookmarked?: boolean; onToggleBookmark?
                             rel="noopener noreferrer"
                             className="inline-block px-6 py-3 bg-[#D72638] text-white font-bold rounded-lg hover:bg-[#b8202f] transition shadow-sm text-center"
                         >
-                            {t('books.searchOnNaver')}
+                            {t('books.searchOnline')}
                         </a>
                     )}
                 </div>
