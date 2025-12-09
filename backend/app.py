@@ -29,7 +29,7 @@ def after_request(response):
 
 # Gemini API 설정
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
-GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent"
+GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
 
 # 알라딘 API 설정
 ALADIN_API_KEY = os.getenv('ALADIN_API_KEY')
