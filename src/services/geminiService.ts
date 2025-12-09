@@ -135,22 +135,14 @@ export const recommendBooksByLevelWithGemini = async (level: string): Promise<Bo
 };
 
 /**
- * 레벨별 책 추천 (Gemini 우선)
+ * 레벨별 책 추천 (백엔드 우선, 실패 시 Gemini)
  */
 export const recommendBooksByLevel = async (level: string): Promise<Book[]> => {
-  // 배포 환경에서는 Gemini만 사용 (빠르고 안정적)
-  const useGeminiOnly = import.meta.env.PROD;
-  
-  if (useGeminiOnly) {
-    console.log("⚡ Gemini 직접 사용 (배포 환경)");
-    return recommendBooksByLevelWithGemini(level);
-  }
-  
-  // 개발 환경에서만 백엔드 시도
   try {
-    // 백엔드 시도 (15초 타임아웃)
+    // 백엔드 시도 (20초 타임아웃)
+    console.log("📚 백엔드로 책 추천 요청 중...");
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000);
+    const timeoutId = setTimeout(() => controller.abort(), 20000);
     
     const response = await fetch(`${BACKEND_URL}/recommend/books`, {
       method: 'POST',
@@ -171,9 +163,10 @@ export const recommendBooksByLevel = async (level: string): Promise<Book[]> => {
     }
 
     const books = await response.json();
+    console.log("✅ 백엔드 응답 성공 (알라딘 API 포함)");
     return books;
   } catch (error: any) {
-    console.warn("백엔드 도서 추천 실패, Gemini로 전환:", error.message);
+    console.warn("⚠️ 백엔드 실패, Gemini로 전환:", error.message);
     // 백엔드 실패 시 Gemini 사용
     return recommendBooksByLevelWithGemini(level);
   }
@@ -238,7 +231,7 @@ ${level ? `- 한국어 수준: ${level}` : ''}
 };
 
 /**
- * 기분, 상황, 목적 기반 책 추천 (Gemini 우선)
+ * 기분, 상황, 목적 기반 책 추천 (백엔드 우선, 실패 시 Gemini)
  */
 export const recommendBooksByMood = async (
   mood: string,
@@ -247,19 +240,11 @@ export const recommendBooksByMood = async (
   genre?: string,
   level?: string
 ): Promise<Book[]> => {
-  // 배포 환경에서는 Gemini만 사용 (빠르고 안정적)
-  const useGeminiOnly = import.meta.env.PROD;
-  
-  if (useGeminiOnly) {
-    console.log("⚡ Gemini 직접 사용 (배포 환경)");
-    return recommendBooksByMoodWithGemini(mood, situation, purpose, genre, level);
-  }
-  
-  // 개발 환경에서만 백엔드 시도
   try {
-    // 백엔드 시도 (15초 타임아웃)
+    // 백엔드 시도 (20초 타임아웃)
+    console.log("📚 백엔드로 기분별 책 추천 요청 중...");
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000);
+    const timeoutId = setTimeout(() => controller.abort(), 20000);
     
     const response = await fetch(`${BACKEND_URL}/recommend/books`, {
       method: 'POST',
@@ -284,9 +269,10 @@ export const recommendBooksByMood = async (
     }
 
     const books = await response.json();
+    console.log("✅ 백엔드 응답 성공 (알라딘 API 포함)");
     return books;
   } catch (error: any) {
-    console.warn("백엔드 기분별 도서 추천 실패, Gemini로 전환:", error.message);
+    console.warn("⚠️ 백엔드 기분별 추천 실패, Gemini로 전환:", error.message);
     // 백엔드 실패 시 Gemini 사용
     return recommendBooksByMoodWithGemini(mood, situation, purpose, genre, level);
   }
