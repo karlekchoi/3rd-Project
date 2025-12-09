@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 import os
 import json
 import re
+import google.generativeai as genai
 
 # .env 파일 로드
 load_dotenv()
@@ -27,9 +28,10 @@ def after_request(response):
     response.headers.add('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
     return response
 
-# Gemini API 설정
+# Gemini API 설정 (Python SDK 사용)
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
-GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
+if GEMINI_API_KEY:
+    genai.configure(api_key=GEMINI_API_KEY)
 
 # 알라딘 API 설정
 ALADIN_API_KEY = os.getenv('ALADIN_API_KEY')
@@ -94,11 +96,15 @@ def recommend_books():
         return jsonify({"error": str(e)}), 500
 
 def recommend_by_level_gemini(level):
-    """Gemini API로 레벨별 책 추천"""
+    """Gemini API로 레벨별 책 추천 (Python SDK 사용)"""
     if not GEMINI_API_KEY:
+        print("GEMINI_API_KEY not found")
         return []
     
-    prompt = f"""한국어 학습자를 위한 {level} 수준의 책 5권을 추천해주세요.
+    try:
+        model = genai.GenerativeModel('models/gemini-2.5-flash')
+        
+        prompt = f"""한국어 학습자를 위한 {level} 수준의 책 5권을 추천해주세요.
 
 응답은 반드시 다음 JSON 형식으로만 작성하세요:
 [
@@ -111,41 +117,34 @@ def recommend_by_level_gemini(level):
 - 실제로 존재하는 인기 도서만
 - 반드시 JSON 배열로만 응답"""
 
-    try:
-        response = requests.post(
-            f"{GEMINI_API_URL}?key={GEMINI_API_KEY}",
-            json={
-                "contents": [{
-                    "parts": [{"text": prompt}]
-                }],
-                "generationConfig": {
-                    "temperature": 0.8,
-                    "maxOutputTokens": 2048
-                }
-            },
-            timeout=10
-        )
+        response = model.generate_content(prompt)
+        text = response.text
         
-        if response.status_code == 200:
-            data = response.json()
-            text = data['candidates'][0]['content']['parts'][0]['text']
-            
-            # JSON 추출
-            json_match = re.search(r'\[[\s\S]*\]', text)
-            if json_match:
-                return json.loads(json_match.group())
+        print(f"Gemini 응답: {text[:200]}...")
         
+        # JSON 추출
+        json_match = re.search(r'\[[\s\S]*\]', text)
+        if json_match:
+            books = json.loads(json_match.group())
+            print(f"파싱된 책 개수: {len(books)}")
+            return books
+        
+        print("JSON 형식을 찾을 수 없음")
         return []
     except Exception as e:
         print(f"Gemini API error: {e}")
         return []
 
 def recommend_by_mood_gemini(mood, situation='', purpose=''):
-    """Gemini API로 기분별 책 추천"""
+    """Gemini API로 기분별 책 추천 (Python SDK 사용)"""
     if not GEMINI_API_KEY:
+        print("GEMINI_API_KEY not found")
         return []
     
-    prompt = f"""한국어 학습자를 위한 책 추천:
+    try:
+        model = genai.GenerativeModel('models/gemini-2.5-flash')
+        
+        prompt = f"""한국어 학습자를 위한 책 추천:
 - 기분: {mood}
 {f"- 상황: {situation}" if situation else ""}
 {f"- 목적: {purpose}" if purpose else ""}
@@ -163,29 +162,18 @@ def recommend_by_mood_gemini(mood, situation='', purpose=''):
 - 현재 기분과 상황에 공감하는 추천 이유 작성
 - 반드시 JSON 배열로만 응답"""
 
-    try:
-        response = requests.post(
-            f"{GEMINI_API_URL}?key={GEMINI_API_KEY}",
-            json={
-                "contents": [{
-                    "parts": [{"text": prompt}]
-                }],
-                "generationConfig": {
-                    "temperature": 0.9,
-                    "maxOutputTokens": 2048
-                }
-            },
-            timeout=10
-        )
+        response = model.generate_content(prompt)
+        text = response.text
         
-        if response.status_code == 200:
-            data = response.json()
-            text = data['candidates'][0]['content']['parts'][0]['text']
-            
-            json_match = re.search(r'\[[\s\S]*\]', text)
-            if json_match:
-                return json.loads(json_match.group())
+        print(f"Gemini 응답: {text[:200]}...")
         
+        json_match = re.search(r'\[[\s\S]*\]', text)
+        if json_match:
+            books = json.loads(json_match.group())
+            print(f"파싱된 책 개수: {len(books)}")
+            return books
+        
+        print("JSON 형식을 찾을 수 없음")
         return []
     except Exception as e:
         print(f"Gemini API error: {e}")
