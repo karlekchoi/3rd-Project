@@ -139,9 +139,9 @@ export const recommendBooksByLevelWithGemini = async (level: string): Promise<Bo
  */
 export const recommendBooksByLevel = async (level: string): Promise<Book[]> => {
   try {
-    // 백엔드 시도 (3초 타임아웃)
+    // 백엔드 시도 (15초 타임아웃)
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3000);
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
     
     const response = await fetch(`${BACKEND_URL}/recommend/books`, {
       method: 'POST',
@@ -239,9 +239,9 @@ export const recommendBooksByMood = async (
   level?: string
 ): Promise<Book[]> => {
   try {
-    // 백엔드 시도 (3초 타임아웃)
+    // 백엔드 시도 (15초 타임아웃)
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3000);
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
     
     const response = await fetch(`${BACKEND_URL}/recommend/books`, {
       method: 'POST',
